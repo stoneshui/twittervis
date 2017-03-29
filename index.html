@@ -19,25 +19,25 @@
     }
 	
 	#top {
-	  width: 1503px;
+	  width: 1900px;
 	  margin: 0px 0px 0px 0px;
 	}
 	
 	#left {
-	  width: 540px;
+	  width: 900px;
 	  position:absolute;
 	  float：left;
 	  margin: 0px 0px 0px 0px;
 	}
 	
 	#right {
-	  width: 960px;
+	  width: 1000px;
 	  float：right;
-	  margin: 0px 0px 0px 540px;	  
+	  margin: 0px 0px 0px 900px;	  
 	}
 
     #bottom {
-      width: 1503px;
+      width: 1900px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -120,18 +120,19 @@
   </script>
   <script> <!-- draw US map -->
 		//Width and height
-		var w = 960;
+		var w = 1000;
 		var h = 600;
 		
-		var w2 = 540;
+		var w2 = 900;
+		var h2 = 600;
 		
 		//Define map projection
 		var projection = d3.geo.albersUsa()
 							   .translate([w/2, h/2])
-							   .scale([1200]);
+							   .scale([1300]);
 		var projection2 = d3.geo.albersUsa()
 							    .translate([w2/2, h/2])
-							    .scale([1500]);
+							    .scale([2000]);
 							   
 		//Define path generator
 		var path = d3.geo.path()
@@ -189,7 +190,7 @@
 					var statecenter = d3.geo.centroid(stateObject[0]);
 					projection2 = d3.geo.mercator().center(statecenter)
 									.translate([w2/2, h/2])
-									.scale([2000]);
+									.scale([2500]);
 					path2 = d3.geo.path()
 								  .projection(projection2);
 
@@ -224,7 +225,7 @@
 														var statecenter = d3.geo.centroid(stateObject[0]);
 														projection2 = d3.geo.mercator().center(statecenter)
 																					   .translate([w2/2, h/2])
-																					   .scale([2000]);
+																					   .scale([2500]);
 														path2 = d3.geo.path()
 																	  .projection(projection2);
 				return d.properties.name === selectedState;}))
