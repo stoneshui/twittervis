@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TwitterAnalysis</title>
+  <script src="d3/d3.v3.min.js"></script>
+  <script src="d3.slider/d3.slider.js"></script>
+  <script src="uStatesMap/uStates.js"></script> <!-- creates uStates. -->
+  <link rel="stylesheet" href="d3.slider/d3.slider.css" />  
+  <style>
+
+    body {
+      font-family: Verdana,Arial,sans-serif;
+    }
+
+    h2 {
+      font-size: 1.2em;
+      margin: 60px 0px 5px 0px;
+    }
+	
+	#top {
+	  width: 1503px;
+	  margin: 0px 0px 0px 0px;
+	}
+	
+	#left {
+	  width: 540px;
+	  position:absolute;
+	  float：left;
+	  margin: 0px 0px 0px 0px;
+	}
+	
+	#right {
+	  width: 960px;
+	  float：right;
+	  margin: 0px 0px 0px 540px;	  
+	}
+
+    #bottom {
+      width: 1503px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #bottom > div {
+      margin: 35px 0;
+    }
+  </style>
+  <style>
+	.state{
+		fill: none;
+		stroke: #a9a9a9;
+		stroke-width: 1;
+	}
+	.state:hover{
+		fill-opacity:0.5;
+	}
+	.tooltip {   
+		position: absolute;           
+		text-align: center;
+		padding: 20px;             
+		margin: 10px;
+		font: 12px sans-serif;        
+		background: lightsteelblue;   
+		border: 1px;      
+		border-radius: 2px;           
+		pointer-events: none;         
+	}
+	.tooltip h4{
+		margin:0;
+		font-size:14px;
+	}
+	.tooltip{
+		background:rgba(0,0,0,0.9);
+		border:1px solid grey;
+		border-radius:5px;
+		font-size:12px;
+		width:auto;
+		padding:4px;
+		color:white;
+		opacity:0;
+	}
+	.tooltip table{
+		table-layout:fixed;
+	}
+	.tooltip tr td{
+		padding:0;
+		margin:0;
+	}
+	.tooltip tr td:nth-child(1){
+		width:50px;
+	}
+	.tooltip tr td:nth-child(2){
+		text-align:center;
+	}
+  </style>
+</head>
+<body>
+  <div id="top">
+	<div id="left"><!-- div to hold Selected State Map. -->
+		<div id="statetip" class="tooltip"></div>
+		<!-- svg to hold the selectedstate map. -->
+	</div>
+	<div id="right"> <!-- div to hold United States Map. -->
+		<div id="ustip" class="tooltip"></div><!-- div to hold tooltip. -->
+	</div>
+  </div>
+ 
+  <div id="bottom">
+    <h4>Year range: <span id="bottomslidertextmin">2017</span>, <span id="bottomslidertextmax">2015</span></h4>
+    <div id="bottomslider"></div>
+  </div>
+
+  <script>
+    d3.select('#bottomslider').call(d3.slider().axis(true).min(2000).max(2017).step(1).value( [ 2010, 2015 ] ).on("slide", function(evt, value) {
+      d3.select('#bottomslidertextmin').text(value[ 0 ]);
+      d3.select('#bottomslidertextmax').text(value[ 1 ]);
+    }));
+   
+  </script>
+  <script> <!-- draw US map -->
+		//Width and height
+		var w = 960;
+		var h = 600;
+		
+		var w2 = 540;
+		
+		//Define map projection
+		var projection = d3.geo.albersUsa()
+							   .translate([w/2, h/2])
+							   .scale([1200]);
+		var projection2 = d3.geo.albersUsa()
+							    .translate([w2/2, h/2])
+							    .scale([1500]);
+							   
+		//Define path generator
+		var path = d3.geo.path()
+						 .projection(projection);
+		
+		var path2 = d3.geo.path()
+						  .projection(projection2);
+						 
+		//Create SVG element
+		var svg = d3.select("#right")
+					.append("svg")
+					.attr("width", w)
+					.attr("height", h)
+					.attr("id", "svg");
+					
+		//Create SVG element
+		var svg2 = d3.select("#left")
+					.append("svg")
+					.attr("width", w2)
+					.attr("height", h)
+					.attr("id", "svg2");
+					
+		// Append Div for tooltip to SVG
+		var div = d3.select("#right")
+					.append("div")   
+					.attr("class", "tooltip")               
+					.style("opacity", 0);
+		
+		var selectedState = "Texas";
+		var stateObject;
+					
+		//Load in GeoJSON data
+		d3.json("uStatesMap/us-states.json", function(json) {
+		
+			//Bind data and create one path per GeoJSON feature
+			svg.selectAll("path")
+			   .data(json.features)
+			   .enter()
+			   .append("path")
+			   .attr("d", path)
+			   .style("stroke","fff")
+			   .style("stroke-width", "1")
+			   .style("fill", function(d){return "rgb(213,222,217)";})
+			   .on("mouseover", function(d){d3.select(this).style("opacity", .5);})
+			   .on("mouseout",function(d){d3.select(this).style("opacity", 1);})
+			   .on("click", function(d) {
+					d3.select("#svg2").remove();
+					svg2 = d3.select("#left")
+							 .append("svg")
+							 .attr("width", w2)
+							 .attr("height", h)
+							 .attr("id", "svg2");
+					selectedState = d.properties.name;
+					stateObject = json.features.filter(function(d){return d.properties.name === selectedState;});
+					var statecenter = d3.geo.centroid(stateObject[0]);
+					projection2 = d3.geo.mercator().center(statecenter)
+									.translate([w2/2, h/2])
+									.scale([2000]);
+					path2 = d3.geo.path()
+								  .projection(projection2);
+
+					console.log(statecenter);
+					svg2.selectAll("path")
+						.data(stateObject)
+						.enter()
+						.append("path")
+						.attr("d", path2)
+						.style("stroke","fff")
+						.style("stroke-width", "1")
+						.style("fill", "00f");
+					//console.log(stateObject);
+					//console.log(svg2);
+					
+					d3.csv("cities/"+selectedState+".csv",
+			function(data){
+				 svg2.selectAll("circle")
+					.data(data)
+					.enter()
+					.append("circle")
+					.attr("cx",function(d){return projection2([d.lon, d.lat])[0];})
+					.attr("cy",function(d){return projection2([d.lon, d.lat])[1];})
+					.attr("r",5)
+					.style("fill","yellow")
+					.style("opacity", 0.75);
+			});
+				});
+			svg2.selectAll("path")
+				.data(json.features.filter(function(d){
+														stateObject = json.features.filter(function(d){return d.properties.name === selectedState;});
+														var statecenter = d3.geo.centroid(stateObject[0]);
+														projection2 = d3.geo.mercator().center(statecenter)
+																					   .translate([w2/2, h/2])
+																					   .scale([2000]);
+														path2 = d3.geo.path()
+																	  .projection(projection2);
+				return d.properties.name === selectedState;}))
+				.enter()
+				.append("path")
+				.attr("d", path2)
+				.style("stroke","fff")
+				.style("stroke-width", "1")
+				.style("fill", "00f");
+			
+			d3.csv("cities/"+selectedState+".csv",
+			function(data){
+				 svg2.selectAll("circle")
+					.data(data)
+					.enter()
+					.append("circle")
+					.attr("cx",function(d){return projection2([d.lon, d.lat])[0];})
+					.attr("cy",function(d){return projection2([d.lon, d.lat])[1];})
+					.attr("r",5)
+					.style("fill","yellow")
+					.style("opacity", 0.75);
+			});
+		});
+		console.log("us Map Loaded!");
+  </script>
+</body>
+</html>
