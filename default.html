@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TwitterAnalysis</title>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="d3.slider/d3.slider.js"></script>
+<link rel="stylesheet" href="d3.slider/d3.slider.css" />  
+  <style>
+
+    body {
+      font-family: Verdana,Arial,sans-serif;
+    }
+
+    h2 {
+      font-size: 1.2em;
+      margin: 60px 0px 5px 0px;
+    }
+	
+	.frame{
+		margin: 0px 0px 0px 0px;
+		border-color: #000000;
+		border: 1px solid;
+	}
+	
+	#top{
+		width: 	1900px;
+		height:	602px;
+	}
+	#subtop1{
+		width: 	598px;
+		height:	602px;
+		position:absolute;
+	  	float: left;
+		margin: -1px 0px -1px -1px;
+	}
+	#subtop2{
+		width: 	1302px;
+		height:	602px;
+		float:	right;
+		margin: -1px -1px 0px 0px;
+	}
+	#subtopright1{
+		width: 	1300px;
+		height:	400px;
+		margin: -1px -1px -2px 0px;
+	}
+	#subtopright2{
+		width: 	1300px;
+		height:	100px;
+		margin: -1px -1px -1px 0px;
+	}
+	#subtopright3{
+		width: 	1300px;
+		height:	100px;
+		margin: -1px -1px -1px 0px;
+	}
+	#bottom{
+		width: 1900px;
+		height: 400px;
+		margin: -1px -1px -1px 0px;
+	}
+	#subbottom1{
+		width: 	600px;
+		height:	400px;
+		float: left;
+		margin: -1px -1px -1px -1px;
+	}
+	#subbottom2{
+		width: 	700px;
+		height:	400px;
+		float: left;
+		margin: -1px -1px -1px 0px;
+	}
+	#subbottom3{
+		width: 	600px;
+		height:	400px;
+		float: left;
+		margin: -1px -1px -1px -1px;
+	}
+	
+	.links line {
+  		stroke: #999;
+  		stroke-opacity: 0.6;
+	}
+
+	.nodes circle {
+  		stroke: #fff;
+  		stroke-width: 1.5px;
+	}
+  </style>
+</head>
+<body>
+	<div class="frame" id="top">
+    	<div class="frame" id="subtop1">111111</div>
+        <div class="frame" id="subtop2">
+        	<div class="frame" id="subtopright1">111111</div>
+            <div class="frame" id="subtopright2">111111</div>
+            <div class="frame" id="subtopright3">1111111</div>
+        </div>
+    </div>
+    <div class="frame" id="bottom">
+    	<div class="frame" id="subbottom1">
+        	<svg id="graphview" width="600px" height="400px"></svg>
+        </div>
+        <div class="frame" id="subbottom2">1111</div>
+        <div class="frame" id="subbottom3">11111</div>    
+	</div>
+
+<script>
+drawGraphView(600,400);
+function drawGraphView(width,height){	
+	var svg=d3.select("#graphview");
+	var color = d3.scaleOrdinal(d3.schemeCategory20);
+	var simulation = d3.forceSimulation()
+						.force("link", d3.forceLink().id(function(d){return d.id;}))
+						.force("charge", d3.forceManyBody())
+						.force("center", d3.forceCenter(width / 2, height / 2));
+	
+	d3.json("data/graphview.json", function(error, graph) {
+		if (error) throw error;
+	
+		var link = svg.append("g")
+						.attr("class", "links")
+						.selectAll("line")
+						.data(graph.links)
+						.enter().append("line")
+						.attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+		
+		var node = svg.append("g")
+					.attr("class", "nodes")
+					.selectAll("circle")
+					.data(graph.nodes)
+					.enter().append("circle")
+					.attr("r", 3)
+					.attr("fill", function(d) { return color(d.group); })
+					.call(d3.drag()
+					.on("start", dragstarted)
+					.on("drag", dragged)
+					.on("end", dragended));
+		
+		node.append("title")
+			.text(function(d) { return d.id; });
+		
+		simulation.nodes(graph.nodes)
+					.on("tick", ticked);
+		
+		simulation.force("link")
+					.links(graph.links);
+		
+		function ticked() {
+		link
+			.attr("x1", function(d) { return d.source.x; })
+			.attr("y1", function(d) { return d.source.y; })
+			.attr("x2", function(d) { return d.target.x; })
+			.attr("y2", function(d) { return d.target.y; });
+		
+		node
+			.attr("cx", function(d) { return d.x; })
+			.attr("cy", function(d) { return d.y; });
+		}
+	});
+
+	function dragstarted(d) {
+		if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+			d.fx = d.x;
+			d.fy = d.y;
+	}
+	
+	function dragged(d) {
+		d.fx = d3.event.x;
+		d.fy = d3.event.y;
+	}
+	
+	function dragended(d) {
+		if (!d3.event.active) simulation.alphaTarget(0);
+			d.fx = null;
+			d.fy = null;
+	}
+}
+
+</script>
+</body>
+</html>
