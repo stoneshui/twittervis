@@ -4,8 +4,9 @@
   <meta charset="utf-8" />
   <title>TwitterAnalysis</title>
   <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="d3.slider/d3.slider.js"></script>
-<link rel="stylesheet" href="d3.slider/d3.slider.css" />  
+  <!-- script src="d3.slider/index.js"></script -->
+  <link rel="stylesheet" type="text/css" href="css/framelayout.css" />  
+  <link rel="stylesheet" href="d3.slider/d3.slider.css" />
   <style>
 
     body {
@@ -17,67 +18,7 @@
       margin: 60px 0px 5px 0px;
     }
 	
-	.frame{
-		margin: 0px 0px 0px 0px;
-		border-color: #000000;
-		border: 1px solid;
-	}
 	
-	#top{
-		width: 	1900px;
-		height:	602px;
-	}
-	#subtop1{
-		width: 	598px;
-		height:	602px;
-		position:absolute;
-	  	float: left;
-		margin: -1px 0px -1px -1px;
-	}
-	#subtop2{
-		width: 	1302px;
-		height:	602px;
-		float:	right;
-		margin: -1px -1px 0px 0px;
-	}
-	#subtopright1{
-		width: 	1300px;
-		height:	400px;
-		margin: -1px -1px -2px 0px;
-	}
-	#subtopright2{
-		width: 	1300px;
-		height:	100px;
-		margin: -1px -1px -1px 0px;
-	}
-	#subtopright3{
-		width: 	1300px;
-		height:	100px;
-		margin: -1px -1px -1px 0px;
-	}
-	#bottom{
-		width: 1900px;
-		height: 400px;
-		margin: -1px -1px -1px 0px;
-	}
-	#subbottom1{
-		width: 	600px;
-		height:	400px;
-		float: left;
-		margin: -1px -1px -1px -1px;
-	}
-	#subbottom2{
-		width: 	700px;
-		height:	400px;
-		float: left;
-		margin: -1px -1px -1px 0px;
-	}
-	#subbottom3{
-		width: 	600px;
-		height:	400px;
-		float: left;
-		margin: -1px -1px -1px -1px;
-	}
 	
 	.links line {
   		stroke: #999;
@@ -88,6 +29,18 @@
   		stroke: #fff;
   		stroke-width: 1.5px;
 	}
+	
+	.bar {
+		fill: steelblue;
+	}
+	
+	.bar:hover {
+		fill: brown;
+	}
+	
+	.axis--x path {
+		display: none;
+	}
   </style>
 </head>
 <body>
@@ -95,8 +48,8 @@
     	<div class="frame" id="subtop1">111111</div>
         <div class="frame" id="subtop2">
         	<div class="frame" id="subtopright1">111111</div>
-            <div class="frame" id="subtopright2">111111</div>
-            <div class="frame" id="subtopright3">1111111</div>
+            <div class="frame" id="subtopright2"></div>
+            <div class="frame" id="subtopright3"></div>
         </div>
     </div>
     <div class="frame" id="bottom">
@@ -108,9 +61,107 @@
 	</div>
 
 <script>
+
+//drawSlider();
 drawGraphView(600,400);
+drawCalendarView(1300,100);
+drawBarChart(700,400);
+
+function drawCalendarView(width,height){
+	var cellSize = 15;
+
+	var formatPercent = d3.format(".1%");
+	console.log("width,","height:",width,height);
+	var color = d3.scaleQuantize()
+					.domain([-0.05, 0.05])
+					.range(["#a50026", "#d73027", "#f46d43", "#fdae61", "#fee08b", "#ffffbf", "#d9ef8b", "#a6d96a", "#66bd63", "#1a9850", "#006837"]);
+	
+	var svg = d3.select('#subtopright2')
+				.selectAll("svg")
+				.data(d3.range(2016, 2017))
+				.enter().append("svg")
+				.attr("width", width)
+				.attr("height", height)
+				.append("g")
+				.attr("transform", "translate(" + ((width - cellSize * 53) / 2) + "," + (height - cellSize * 7 - 1) + ")");
+	
+	svg.append("text")
+		.attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+		.attr("font-family", "sans-serif")
+		.attr("font-size", 10)
+		.attr("text-anchor", "middle")
+		.text(function(d) { return d; });
+	
+	var rect =	svg.append("g")
+					.attr("fill", "none")
+					.attr("stroke", "#ccc")
+					.selectAll("rect")
+					.data(function(d) { return d3.timeDays(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+					.enter().append("rect")
+					.attr("width", cellSize)
+					.attr("height", cellSize)
+					.attr("x", function(d) { return d3.timeWeek.count(d3.timeYear(d), d) * cellSize; })
+					.attr("y", function(d) { return d.getDay() * cellSize; })
+					.datum(d3.timeFormat("%Y-%m-%d"));
+	
+	svg.append("g")
+		.attr("fill", "none")
+		.attr("stroke", "#000")
+		.selectAll("path")
+		.data(function(d) { return d3.timeMonths(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
+		.enter().append("path")
+		.attr("d", pathMonth);
+	
+	d3.csv("data/dji.csv", function(error, csv) {
+		if (error) throw error;
+			
+		var data = d3.nest()
+					 .key(function(d) { return d.Date; })
+					 .rollup(function(d) { return (d[0].Close - d[0].Open) / d[0].Open; })
+					 .object(csv);
+	
+		rect.filter(function(d) { return d in data; })
+			.attr("fill", function(d) { return color(data[d]); })
+			.append("title")
+			.text(function(d) { return d + ": " + formatPercent(data[d]); });
+	});
+	
+	function pathMonth(t0) {
+		var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+			d0 = t0.getDay(), w0 = d3.timeWeek.count(d3.timeYear(t0), t0),
+			d1 = t1.getDay(), w1 = d3.timeWeek.count(d3.timeYear(t1), t1);
+		return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
+			+ "H" + w0 * cellSize + "V" + 7 * cellSize
+			+ "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
+			+ "H" + (w1 + 1) * cellSize + "V" + 0
+			+ "H" + (w0 + 1) * cellSize + "Z";
+	}
+
+}
+  
+/*function drawSlider(){//draw Slider
+	d3.select('#subtopright3')
+	  .call(d3.slider()
+			  .axis(true)
+			  .min(2000)
+			  .max(2017)
+			  .step(1)
+			  .value( [ 2010, 2015 ] )
+			  .on("slide", function(evt, value) 
+							{
+								d3.select('#bottomslidertextmin').text(value[ 0 ]);
+								d3.select('#bottomslidertextmax').text(value[ 1 ]);
+							}
+				 )
+			);
+}*/
+
+function drawSlider(){
+	
+}
+	
 function drawGraphView(width,height){	
-	var svg=d3.select("#graphview");
+	var svg = d3.select('#graphview');
 	var color = d3.scaleOrdinal(d3.schemeCategory20);
 	var simulation = d3.forceSimulation()
 						.force("link", d3.forceLink().id(function(d){return d.id;}))
@@ -179,6 +230,58 @@ function drawGraphView(width,height){
 	}
 }
 
+function drawBarChart(width,height)
+{
+	var svg = d3.select("#subbottom2")
+				.selectAll("svg");
+	
+	var	margin = {top: 20, right: 20, bottom: 30, left: 40};
+	var	width =	width - margin.left - margin.right;
+	var	height = width - margin.top - margin.bottom;
+		
+		console.log("width,","height:",width,height);////////////////////////////////////
+		
+	var x = d3.scaleBand().rangeRound([0, width]).padding(0.1);
+	var	y = d3.scaleLinear().rangeRound([height, 0]);
+	
+	var g = svg.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	
+	d3.tsv("data/barchartdata.tsv", function(error, data){
+		data.frequency = data.frequency + data.frequency;
+		
+		console.log("data:",data);
+		
+		if (error) return console.log(error);
+	
+		x.domain(data.map(function(d) { return d.letter; }));
+		y.domain([0, d3.max(data, function(d) { return d.frequency;})]);
+		
+		g.append("g")
+			.attr("class", "axis axis--x")
+			.attr("transform", "translate(0," + height + ")")
+			.call(d3.axisBottom(x));
+		
+		g.append("g")
+			.attr("class", "axis axis--y")
+			.call(d3.axisLeft(y).ticks(10, "%"))
+			.append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("y", 6)
+			.attr("dy", "0.71em")
+			.attr("text-anchor", "end")
+			.text("Frequency");
+		
+		g.selectAll(".bar")
+			.data(data)
+			.enter().append("rect")
+			.attr("class", "bar")
+			.attr("x", function(d) { return x(d.letter); })
+			.attr("y", function(d) { return y(d.frequency); })
+			.attr("width", x.bandwidth())
+			.attr("height", function(d) { return height - y(d.frequency); });
+	});
+}
 </script>
 </body>
 </html>
