@@ -44,8 +44,8 @@
 <body>
   <div class="content">
 	<div class="frame" id="top">
-    	<div class="frame" id="subtop1">111111
-			<iframe frameborder="0" height="600px" width="600px" scrolling="no" src="https://www.jasondavies.com/wordcloud/" ></iframe>
+    	<div class="frame" id="subtop1">
+			<iframe frameborder="0" height="600px" width="600px" scrolling="no" src="frame/wordscloud.html" ></iframe>
 		</div>
         <div class="frame" id="subtop2">
         	<div class="frame" id="subtopright1">
@@ -347,7 +347,7 @@ function drawGraphView(width,height){
 					.selectAll("circle")
 					.data(graph.nodes)
 					.enter().append("circle")
-					.attr("r", 3)
+					.attr("r", 5)
 					.attr("fill", function(d) { return color(d.group); })
 					.call(d3.drag()
 					.on("start", dragstarted)
