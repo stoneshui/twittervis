@@ -1,0 +1,70 @@
+.frame{
+		margin: 0px 0px 0px 0px;
+		border-color: #000000;
+		border: 1px solid;
+	}
+	
+	#top{
+		width: 	1900px;
+		height:	602px;
+	}
+	
+	#subtop1{
+		width: 	598px;
+		height:	602px;
+		position:absolute;
+	  	float: left;
+		margin: -1px 0px -1px -1px;
+	}
+	
+	#subtop2{
+		width: 	1302px;
+		height:	602px;
+		float:	right;
+		margin: -1px -1px 0px 0px;
+	}
+	
+	#subtopright1{
+		width: 	1300px;
+		height:	400px;
+		margin: -1px -1px -2px 0px;
+	}
+	
+	#subtopright2{
+		width: 	1300px;
+		height:	130px;
+		margin: -1px -1px -1px 0px;
+	}
+	
+	#subtopright3{
+		width: 	1300px;
+		height:	70px;
+		margin: -1px -1px -1px 0px;
+	}
+	
+	#bottom{
+		width: 1900px;
+		height: 400px;
+		margin: -1px -1px -1px 0px;
+	}
+	
+	#subbottom1{
+		width: 	600px;
+		height:	400px;
+		float: left;
+		margin: -1px -1px -1px -1px;
+	}
+	
+	#subbottom2{
+		width: 	700px;
+		height:	400px;
+		float: left;
+		margin: -1px -1px -1px 0px;
+	}
+	
+	#subbottom3{
+		width: 	600px;
+		height:	400px;
+		float: left;
+		margin: -1px -1px -1px -1px;
+	}

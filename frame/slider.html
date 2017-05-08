@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TwitterAnalysis</title>
+  <script src="../d3/d3.js"></script>
+  <script src="../d3.slider/d3.slider.js"></script>
+  <link rel="stylesheet" href="../d3.slider/d3.slider.css" />  
+  <style>
+
+	*{
+		padding: 0;
+		box-sizing: border-box;
+		margin: 0 auto;
+		clear:both;
+	}
+	
+    body {
+      font-family: Verdana,Arial,sans-serif;
+    }
+
+    h2 {
+      font-size: 1.2em;
+      margin: 60px 0px 5px 0px;
+    }
+	
+	#bottom {
+      width: 1100px;
+    }
+
+    #bottom > div {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="bottom" align="center">
+    <!--<h4>Range: <span id="bottomslidertextmin">2017</span>, <span id="bottomslidertextmax">2015</span></h4>-->
+    <div id="bottomslider" align="center"></div>
+  </div>
+
+  <script>
+	var color = d3.scale.category20();
+	
+	
+<!-- draw Slider -->    
+	d3.select('#bottomslider')
+	  .call(d3.slider()
+			  .axis(true)
+			  .min(2010)
+			  .max(2017)
+			  .step(0.083)
+			  .value( [ 2010, 2017 ] )
+			  .on("slide", function(evt, value) 
+							{
+								d3.select('#bottomslidertextmin').text(value[ 0 ]);
+								d3.select('#bottomslidertextmax').text(value[ 1 ]);
+							}
+				 )
+			);
+  </script>
+</body>
+</html>

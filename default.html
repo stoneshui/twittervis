@@ -18,8 +18,6 @@
       margin: 60px 0px 5px 0px;
     }
 	
-	
-	
 	.links line {
   		stroke: #999;
   		stroke-opacity: 0.6;
@@ -44,28 +42,198 @@
   </style>
 </head>
 <body>
+  <div class="content">
 	<div class="frame" id="top">
-    	<div class="frame" id="subtop1">111111</div>
+    	<div class="frame" id="subtop1">111111
+			<iframe frameborder="0" height="600px" width="600px" scrolling="no" src="https://www.jasondavies.com/wordcloud/" ></iframe>
+		</div>
         <div class="frame" id="subtop2">
-        	<div class="frame" id="subtopright1">111111</div>
+        	<div class="frame" id="subtopright1">
+				<iframe frameborder="0" height="400px" width="1300px" scrolling="no" src="frame/para.html" ></iframe>
+			</div>
             <div class="frame" id="subtopright2"></div>
-            <div class="frame" id="subtopright3"></div>
+            <div class="frame" id="subtopright3">
+				<iframe frameborder="0" height="50px" width="1300px" scrolling="no" src="frame/slider.html" ></iframe>
+			</div>
         </div>
     </div>
     <div class="frame" id="bottom">
     	<div class="frame" id="subbottom1">
         	<svg id="graphview" width="600px" height="400px"></svg>
         </div>
-        <div class="frame" id="subbottom2">1111</div>
-        <div class="frame" id="subbottom3">11111</div>    
+        <div class="frame" id="subbottom2"></div>
+        <div class="frame" id="subbottom3">Reserved area!!!</div>    
 	</div>
-
+  </div>
 <script>
+
 
 //drawSlider();
 drawGraphView(600,400);
 drawCalendarView(1300,100);
 drawBarChart(700,400);
+//drawWordCloud(600*600);
+//drawParallelCoordinates(1300,400);
+
+/*function drawParallelCoordinates(width,height){
+	var species = ["setosa", "versicolor", "virginica"],
+    traits = ["sepal length", "petal length", "sepal width", "petal width"];
+
+	var m = [80, 160, 200, 160],
+		w = width - m[1] - m[3],
+		h = height - m[0] - m[2];
+	
+	var x = d3.scaleOrdinal().domain(traits).range([0, w]),
+		y = {};
+	
+	var line = d3.line(),
+		axis = d3.axisLeft(),
+		foreground;
+	
+	var svg = d3.select("#subtopright1").append("svg:svg")
+		.attr("width", w + m[1] + m[3])
+		.attr("height", h + m[0] + m[2])
+		.append("svg:g")
+		.attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+	
+	d3.csv("data/iris.csv", function(flowers) {
+
+		// Create a scale and brush for each trait.
+		traits.forEach(function(d) {
+			// Coerce values to numbers.
+			flowers.forEach(function(p) { p[d] = +p[d]; });
+
+			y[d] = d3.scaleLinear()
+						.domain(d3.extent(flowers, function(p) { return p[d]; }))
+						.range([h, 0]);
+			
+			y[d].brush = d3.brushY(y[d])
+							.on("brush", brush);
+		});
+
+		// Add a legend.
+		var legend = svg.selectAll("g.legend")
+						.data(species)
+						.enter().append("svg:g")
+						.attr("class", "legend")
+						.attr("transform", function(d, i) { return "translate(0," + (i * 20 + 584) + ")"; });
+		
+		legend.append("svg:line")
+				.attr("class", String)
+				.attr("x2", 8);
+		
+		legend.append("svg:text")
+				.attr("x", 12)
+				.attr("dy", ".31em")
+				.text(function(d) { return "Iris " + d; });
+		
+		// Add foreground lines.
+		foreground = svg.append("svg:g")
+						.attr("class", "foreground")
+						.selectAll("path")
+						.data(flowers)
+						.enter().append("svg:path")
+						.attr("d", path)
+						.attr("class", function(d) { return d.species; });
+		
+		// Add a group element for each trait.
+		var g = svg.selectAll(".trait")
+					.data(traits)
+					.enter().append("svg:g")
+					.attr("class", "trait")
+					.attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+					.call(d3.drag()
+							.container(function(d) { return {x: x(d)}; })
+							.on("dragstart", dragstart)
+							.on("drag", drag)
+							.on("dragend", dragend)
+						);
+		
+		// Add an axis and title.
+		g.append("svg:g")
+			.attr("class", "axis")
+			.each(function(d) { d3.select(this).call(axis.scale(y[d])); })
+			.append("svg:text")
+			.attr("text-anchor", "middle")
+			.attr("y", -9)
+			.text(String);
+		
+		// Add a brush for each axis.
+		g.append("svg:g")
+			.attr("class", "brush")
+			.each(function(d) { d3.select(this).call(y[d].brush); })
+			.selectAll("rect")
+			.attr("x", -8)
+			.attr("width", 16);
+		
+		function dragstart(d) {
+			i = traits.indexOf(d);
+		}
+		
+		function drag(d) {
+			x.range()[i] = d3.event.x;
+			traits.sort(function(a, b) { return x(a) - x(b); });
+			g.attr("transform", function(d) { return "translate(" + x(d) + ")"; });
+			foreground.attr("d", path);
+		}
+		
+		function dragend(d) {
+			x.domain(traits).rangePoints([0, w]);
+			var t = d3.transition().duration(500);
+			t.selectAll(".trait").attr("transform", function(d) { return "translate(" + x(d) + ")"; });
+			t.selectAll(".foreground path").attr("d", path);
+		}
+	});
+
+	// Returns the path for a given data point.
+	function path(d) {
+		return line(traits.map(function(p) { return [x(p), y[p](d[p])]; }));
+	}
+	
+	// Handles a brush event, toggling the display of foreground lines.
+	function brush() {
+		var actives = traits.filter(function(p) { return !y[p].brush.empty(); }),
+			extents = actives.map(function(p) { return y[p].brush.extent(); });
+		foreground.classed("fade", function(d) {
+			return !actives.every(function(p, i) {
+				return extents[i][0] <= d[p] && d[p] <= extents[i][1];
+			});
+		});
+	}
+}*/
+
+/*function drawWordCloud(width,height){
+	var fill = d3.scaleOrdinal(d3.schemeCategory20);
+	var color = d3.scaleLinear()
+			  .domain([0,1,2,3,4,5,6,10,15,20,100])
+              .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
+    d3.json("data/word.json", function(wordlist,err){
+        d3.layout.cloud().size([600, 600])
+                .words(wordlist)
+				.padding(5)
+                .rotate(function() { return ~~(Math.random() * 2) * 90; })
+                .fontSize(function(d) { return d.size; })
+                .on("end", draw)
+                .start();
+    
+    d3.select("#subtop1")
+	  .append("svg")
+      .attr("width", width).attr("height", height)
+      .attr("class", "wordcloud")
+      .append("g")
+      .attr("transform", "translate(320,200)")
+      .selectAll("text")
+      .data(words)
+      .enter().append("text")
+      .style("font-size", function(d) { return d.size + "px"; })
+      .style("fill", function(d, i) { return fill(i); })
+	  .style("font-family", "黑体")
+      .attr("transform", function(d) {
+			return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+      })
+      .text(function(d) { return d.text; });
+    });
+}*/
 
 function drawCalendarView(width,height){
 	var cellSize = 15;
@@ -155,10 +323,6 @@ function drawCalendarView(width,height){
 				 )
 			);
 }*/
-
-function drawSlider(){
-	
-}
 	
 function drawGraphView(width,height){	
 	var svg = d3.select('#graphview');
@@ -232,56 +396,60 @@ function drawGraphView(width,height){
 
 function drawBarChart(width,height)
 {
+	//height = height - 50;
 	var svg = d3.select("#subbottom2")
-				.selectAll("svg");
+				.append("svg")
+				.attr("width", width)
+				.attr("height", height);
 	
-	var	margin = {top: 20, right: 20, bottom: 30, left: 40};
-	var	width =	width - margin.left - margin.right;
-	var	height = width - margin.top - margin.bottom;
+	var	margin = {top: 10, right: 20, bottom: 20, left: 30},
+		width = +svg.attr("width") - margin.left - margin.right,
+		height = +svg.attr("height") - margin.top - margin.bottom;
 		
-		console.log("width,","height:",width,height);////////////////////////////////////
-		
-	var x = d3.scaleBand().rangeRound([0, width]).padding(0.1);
-	var	y = d3.scaleLinear().rangeRound([height, 0]);
+	var x = d3.scaleBand()
+			  .rangeRound([0, width])
+			  .padding(0.1);
+	var	y = d3.scaleLinear()
+			  .rangeRound([height, 0]);
 	
 	var g = svg.append("g")
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 	
-	d3.tsv("data/barchartdata.tsv", function(error, data){
-		data.frequency = data.frequency + data.frequency;
-		
-		console.log("data:",data);
-		
-		if (error) return console.log(error);
-	
-		x.domain(data.map(function(d) { return d.letter; }));
-		y.domain([0, d3.max(data, function(d) { return d.frequency;})]);
-		
-		g.append("g")
-			.attr("class", "axis axis--x")
-			.attr("transform", "translate(0," + height + ")")
-			.call(d3.axisBottom(x));
-		
-		g.append("g")
-			.attr("class", "axis axis--y")
-			.call(d3.axisLeft(y).ticks(10, "%"))
-			.append("text")
-			.attr("transform", "rotate(-90)")
-			.attr("y", 6)
-			.attr("dy", "0.71em")
-			.attr("text-anchor", "end")
-			.text("Frequency");
-		
-		g.selectAll(".bar")
-			.data(data)
-			.enter().append("rect")
-			.attr("class", "bar")
-			.attr("x", function(d) { return x(d.letter); })
-			.attr("y", function(d) { return y(d.frequency); })
-			.attr("width", x.bandwidth())
-			.attr("height", function(d) { return height - y(d.frequency); });
-	});
+	d3.tsv("data/barchartdata.tsv", function(d) {
+		d.frequency = +d.frequency;
+		return d;
+	}, function(error, data) {
+			if (error) throw error;
+
+			x.domain(data.map(function(d) { return d.letter; }));
+			y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+			
+			g.append("g")
+				.attr("class", "axis axis--x")
+				.attr("transform", "translate(0," + 375 + ")")
+				.call(d3.axisBottom(x));
+			
+			g.append("g")
+				.attr("class", "axis axis--y")
+				.call(d3.axisLeft(y).ticks(10, "%"))
+				.append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 6)
+				.attr("dy", "0.71em")
+				.attr("text-anchor", "end")
+				.text("XXX");
+			
+			g.selectAll(".bar")
+				.data(data)
+				.enter().append("rect")
+				.attr("class", "bar")
+				.attr("x", function(d) { return x(d.letter); })
+				.attr("y", function(d) { return y(d.frequency); })
+				.attr("width", x.bandwidth())
+				.attr("height", function(d) { return height - y(d.frequency); });
+});
 }
+
 </script>
 </body>
 </html>
